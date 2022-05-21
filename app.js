@@ -1,24 +1,32 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+const morgan = require('morgan')
+const cors = require('cors')
 
 const rootRoute = require('./routes/root')
 const onePointRoute = require('./routes/onePoint')
 const HttpError = require('./models/http-error')
 
+require('dotenv').config()
+
 const app = express()
 
-app.use(bodyParser.json())
+mongoose
+	.connect(process.env.DATABASE, {
+		useNewUrlParser: true,
+		useUnifiedTopology: false,
+	})
+	.then(() => {
+		console.log('Connect to database success')
+	})
+	.catch((err) => {
+		console.log(err)
+	})
 
-app.use((req, res, next) => {
-	res.setHeader('Access-Control-Allow-Origin', '*')
-	res.setHeader(
-		'Access-Control-Allow-Methods',
-		'OPTIONS, GET, POST, PUT, PATCH, DELETE'
-	)
-	res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-	next()
-})
+app.use(bodyParser.json())
+app.use(cors())
+app.use(morgan('dev'))
 
 app.use('/api', rootRoute)
 app.use('/apiOne', onePointRoute)
@@ -36,14 +44,8 @@ app.use((error, req, res, next) => {
 	res.json({ message: error.message || 'An unknown error occurred!' })
 })
 
-mongoose
-	.connect(
-		'mongodb+srv://RedCats:030355118Aa@cluster0.rz1pq.mongodb.net/numeric?retryWrites=true&w=majority'
-	)
-	.then(() => {
-		app.listen(5000)
-		console.log('Connected to DataBase Success')
-	})
-	.catch((err) => {
-		console.log(err)
-	})
+const port = process.env.PORT || 8080
+
+app.listen(port, () => {
+	console.log(`start server in port ${port}`)
+})
