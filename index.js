@@ -6,7 +6,13 @@ const cors = require('cors')
 
 const rootRoute = require('./routes/root')
 const onePointRoute = require('./routes/onePoint')
+const cramerRoute = require('./routes/cramer')
+const eliminationRoute = require('./routes/elimination')
+const userRoute = require('./routes/user')
 const HttpError = require('./models/http-error')
+
+const swaggerUi = require('swagger-ui-express'),
+	swaggerDocument = require('./swagger.json')
 
 require('dotenv').config()
 
@@ -28,8 +34,13 @@ app.use(bodyParser.json())
 app.use(cors())
 app.use(morgan('dev'))
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+
+app.use('/api', userRoute)
 app.use('/api', rootRoute)
-app.use('/apiOne', onePointRoute)
+app.use('/api', onePointRoute)
+app.use('/api', cramerRoute)
+app.use('/api', eliminationRoute)
 
 app.use((req, res, next) => {
 	const error = new HttpError('Could not find this route.', 404)
